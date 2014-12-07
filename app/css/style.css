@@ -1,0 +1,42 @@
+html {
+    margin: 10px;
+}
+
+.spinner {
+    position:    relative !important;
+    top:         70px !important;
+    left:        50% !important;
+    margin-left: -50px !important;
+    width:       100px !important;
+    height:      140px !important;
+}
+
+.menu-validation-heading {
+    cursor: pointer;
+}
+
+.menu-validation-body {
+    padding: 0 !important;
+}
+
+.menu-validation-form-editor {
+    border-bottom: 1px solid #dddddd;
+}
+
+.menu-validation-form-buttons {
+    margin-right: 28px;
+    margin-left:  28px;
+}
+
+.menu-validation-form-button-icon {
+    padding-right:  5px;
+    vertical-align: text-top;
+}
+
+.menu-validation-form-button-left {
+    float: left;
+}
+
+.menu-validation-form-button-right {
+    float: right;
+}
