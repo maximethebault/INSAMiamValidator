@@ -55,11 +55,11 @@ app.factory('CourseService', ['$resource', 'Course', function($resource, Course)
         {
             query: {
                 method:            'GET',
-                responseType:      'json',
                 headers:           {
                     'Accept':         'application/json; charset=utf-8',
                     'Accept-Charset': 'charset=utf-8'
                 },
+                responseType:      'json',
                 isArray:           true,
                 transformResponse: function(coursesData) {
                     var courses = [];
