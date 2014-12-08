@@ -1,54 +1,78 @@
 <!DOCTYPE html>
-<html ng-app="Validator">
+<html ng-app="validator">
 <head lang="en">
     <meta charset="UTF-8">
     <title>Validator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/lib/codemirror.css">
     <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/addon/hint/show-hint.css" />
-    <link rel="stylesheet" href="../bower_components/codemirror/addon/fold/foldgutter.css" />
+    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h3 class="panel-title">24/10/14 - Déjeuner</h3>
+<section class="menu-validation" ng-controller="MenuValidationCtrl as validator">
+    <div ng-show="validator.loading">
+        <div us-spinner="{radius:30, width:8, length: 16}" spinner-start-active="true"></div>
     </div>
-    <div class="panel-body">
-        <!--<section ng-controller="AceCtrl as ace">
-
-            <div ui-ace="aceOption" ng-model="aceModel" style="height: 300px;"></div>
-
-            <select ng-model="mode" ng-options="m for m in modes" ng-change="modeChanged()"></select>
-
-        </section>-->
-        <section ng-controller="EditorCtrl as editor">
-
-            <textarea ui-codemirror="editor.cmOption" ng-model="editor.cmModel"></textarea>
-
-            Mode : <select ng-model="editor.mode" ng-options="m for m in editor.modes"
-                           ng-change="editor.modeChanged()"></select>
-
-        </section>
+    <div id="panel-menu-{{menu.getId()}}" class="panel panel-default" ng-repeat="menu in validator.menus.getMenus()"
+         ng-cloak>
+        <div class="panel-heading menu-validation-heading" ng-click="validator.toggleMenuSelect(menu.getId())">
+            <h3 class="panel-title">{{menu.getDate() | date:'dd/MM/yyyy'}} - {{menu.getType() | menuType}}</h3>
+        </div>
+        <div class="panel-body menu-validation-body" ng-show="validator.menuSelection[menu.getId()]"
+             ng-controller="EditorCtrl as editor">
+            <section ng-hide="editor.loading">
+                <form class="menu-validation-form">
+                    <div class="menu-validation-form-editor">
+                        <textarea ui-codemirror="editor.cmOption" ng-model="editor.cmModel"
+                                  title="menueditor"></textarea>
+                    </div>
+                    <ul class="menu-validation-form-buttons pager">
+                        <li class="menu-validation-form-button-left">
+                            <button type="button" class="btn btn-danger"
+                                    ng-click="editor.markClosed($index, menu.getId())">
+                                <span class="glyphicon glyphicon-remove menu-validation-form-button-icon"
+                                      aria-hidden="true"></span>
+                                Mark as closed
+                            </button>
+                        </li>
+                        <li class="menu-validation-form-button-right">
+                            <button type="button" class="btn btn-primary"
+                                    ng-click="editor.validate($index, menu.getId())">
+                                <span class="glyphicon glyphicon-ok menu-validation-form-button-icon"
+                                      aria-hidden="true"></span>
+                                Validate
+                            </button>
+                        </li>
+                    </ul>
+                </form>
+            </section>
+            <section ng-show="editor.loading">
+                <div us-spinner="{radius:30, width:8, length: 16}" spinner-start-active="true"></div>
+            </section>
+        </div>
     </div>
-</div>
+</section>
 
 <script type="text/javascript" src="../bower_components/codemirror/lib/codemirror.js"></script>
+<script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript" src="../bower_components/angular/angular.js"></script>
+<script type="text/javascript" src="../bower_components/angular-resource/angular-resource.js"></script>
+<script type="text/javascript" src="../bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
+
+<script src="../bower_components/spin.js/spin.js"></script>
+<script src="../bower_components/angular-spinner/angular-spinner.js"></script>
+
+<script type="text/javascript" src="js/menu/model.js"></script>
+<script type="text/javascript" src="js/menu/service.js"></script>
+<script type="text/javascript" src="js/menu/controller.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
 
 <script src="../bower_components/codemirror/addon/hint/show-hint.js"></script>
-<script src="../bower_components/codemirror/addon/hint/xml-hint.js"></script>
 
+<script src="js/codemirror-addon/hint/miamu-hint.js"></script>
 
-<script src="../bower_components/codemirror/addon/fold/foldcode.js"></script>
-<script src="../bower_components/codemirror/addon/fold/foldgutter.js"></script>
-<script src="../bower_components/codemirror/addon/fold/brace-fold.js"></script>
-<script src="../bower_components/codemirror/addon/fold/xml-fold.js"></script>
-<script src="../bower_components/codemirror/addon/fold/markdown-fold.js"></script>
-<script src="../bower_components/codemirror/addon/fold/comment-fold.js"></script>
-<script src="../bower_components/codemirror/mode/javascript/javascript.js"></script>
-
-<script src="../bower_components/codemirror/mode/xml/xml.js"></script>
-<script src="js/codemirror/mode/miamu/miamu.js"></script>
-<script type="text/javascript" src="../bower_components/angular/angular.js"></script>
-<script type="text/javascript" src="../bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
-<script type="text/javascript" src="js/app.js"></script>
+<script src="js/codemirror-addon/mode/miamu-mode.js"></script>
 </body>
 </html>
