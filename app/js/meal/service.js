@@ -1,45 +1,46 @@
 var app = angular.module('validator.service', ['ngResource', 'ui.codemirror', 'validator.model']);
 
-app.factory('MealService', ['$resource', 'Menus', 'Menu', 'Meal', 'MealEntry', 'Course', function($resource, Menus, Menu, Meal, MealEntry, Course) {
+app.factory('MealService', ['$resource', 'Meal', 'Textline', 'Course', function($resource, Meal, Textline, Course) {
     return $resource('/insamiam/api/meal', {}, {
         query: {
             method:            'GET',
             responseType:      'json',
             headers:           {
-                "Accept":         "application/json; charset=utf-8",
-                "Accept-Charset": "charset=utf-8"
+                'Accept':         'application/json; charset=utf-8',
+                'Accept-Charset': 'charset=utf-8'
             },
+            isArray:           true,
             params:            {validated: 0},
-            transformResponse: function(menusData) {
-                var menus = new Menus();
-                menusData.forEach(function(menuData) {
-                    var menu = new Menu();
-                    menu.setId(menuData.id);
-                    menu.setDate(menuData.date);
-                    menu.setType(menuData.type);
-                    menu.setClosed(menuData.closed);
+            transformResponse: function(mealsData) {
+                var meals = [];
+                mealsData.forEach(function(mealData) {
                     var meal = new Meal();
-                    menuData.textlines.forEach(function(mealData) {
-                        var mealEntry = new MealEntry();
-                        mealEntry.setContent(mealData.content);
-                        mealEntry.setCourse(Course.filterCourse(mealData));
-                        meal.addMealEntry(mealEntry);
+                    meal.setId(mealData.id);
+                    meal.setDate(mealData.date);
+                    meal.setType(mealData.type);
+                    meal.setClosed(mealData.closed);
+                    var textlines = meal.getTextlines();
+                    mealData.textlines.forEach(function(textlineData) {
+                        var textline = new Textline();
+                        textline.setContent(textlineData.content);
+                        textline.setCourse(Course.filterCourse(textlineData));
+                        textlines.push(textline);
                     });
-                    menu.setMeal(meal);
-                    menus.addMenu(menu);
+                    meals.push(meal);
                 });
-                return menus;
+                return meals;
             }
         },
         save:  {
             method:           'POST',
             responseType:     'json',
             headers:          {
-                "Accept":         "application/json; charset=utf-8",
-                "Accept-Charset": "charset=utf-8"
+                'Accept':         'application/json; charset=utf-8',
+                'Accept-Charset': 'charset=utf-8',
+                'Content-Type':   'application/json; charset=utf-8'
             },
-            transformRequest: function(menu) {
-                return JSON.stringify(menu.toJSON());
+            transformRequest: function(meal) {
+                return JSON.stringify(meal.toJSON());
             }
         }
     });
@@ -57,8 +58,8 @@ app.factory('CourseService', ['$resource', 'Course', function($resource, Course)
                 method:            'GET',
                 responseType:      'json',
                 headers:           {
-                    "Accept":         "application/json; charset=utf-8",
-                    "Accept-Charset": "charset=utf-8"
+                    'Accept':         'application/json; charset=utf-8',
+                    'Accept-Charset': 'charset=utf-8'
                 },
                 isArray:           true,
                 transformResponse: function(coursesData) {
@@ -75,36 +76,35 @@ app.factory('CourseService', ['$resource', 'Course', function($resource, Course)
         });
 }]);
 
-app.factory('WidgetManager', ['$timeout', 'Menu', 'Course', 'Widget', function($timeout, Menu, Course, Widget) {
+app.factory('WidgetManager', ['$timeout', 'Meal', 'Textline', 'Course', 'Widget', function($timeout, Meal, Textline, Course, Widget) {
     function WidgetManager(_cm, editor, cb) {
         var _widgets = [];
-        var meal;
+        var textlines;
 
         function init() {
             // set the editor's content
             var content = [];
-            editor.menu.getMeal().getMealEntries().forEach(function(mealEntry) {
-                content.push(mealEntry.getContent());
+            editor.meal.getTextlines().forEach(function(textline) {
+                content.push(textline.getContent());
             });
             editor.cmModel = content.join('\n');
 
             // set the widgets
             $timeout(function() {
                 _cm.operation(function() {
-                    meal = editor.menu.getMeal();
-                    editor.menu.getMeal().getMealEntries().forEach(function(mealEntry, index) {
-                        if(mealEntry.getContent()) {
-                            if(!mealEntry.getCourse()) {
+                    textlines = editor.meal.getTextlines();
+                    editor.meal.getTextlines().forEach(function(textline, index) {
+                        if(textline.getContent()) {
+                            if(!textline.getCourse()) {
                                 var course = new Course();
-                                course.setName(mealEntry.getContent());
+                                course.setName(textline.getContent());
                                 course.setType(getCourseTypeAt(_cm, {
                                     line: index,
                                     ch:   0
                                 }));
-                                mealEntry.setCourse(course);
+                                textline.setCourse(course);
                             }
-                            //console.log(mealEntry.getCourse().toJSON());
-                            addWidget(_cm, index, mealEntry.getCourse());
+                            addWidget(_cm, index, textline.getCourse());
                         }
                     });
                 });
@@ -158,7 +158,11 @@ app.factory('WidgetManager', ['$timeout', 'Menu', 'Course', 'Widget', function($
                     var course = new Course();
                     course.setName(lineContent);
                     course.setType(getCourseTypeAt(_cm, _cm.getCursor()));
-                    meal.addMealEntry(course);
+
+                    var textline = new Textline();
+                    textline.setCourse(course);
+
+                    textlines.push(textline);
                     addWidget(_cm, lineIndex, course);
                 }
                 else if(widget) {
@@ -167,8 +171,13 @@ app.factory('WidgetManager', ['$timeout', 'Menu', 'Course', 'Widget', function($
                 }
             });
             orphelinWidgets.forEach(function(widget) {
-                delete _widgets[orphelinWidgets.indexOf(widget)];
-                meal.removeMealEntry(widget.getCourse());
+                delete _widgets[_widgets.indexOf(widget)];
+                textlines.some(function(texline, index) {
+                    if(texline.getCourse() == widget.getCourse()) {
+                        textlines.splice(index, 1);
+                        return true;
+                    }
+                });
             });
         }
 

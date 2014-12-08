@@ -2,15 +2,15 @@ var app = angular.module('validator.controller', ['ngResource', 'ui.codemirror',
 
 app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function($scope, MealService, WidgetManager) {
     var editor = this;
-    editor.menu = $scope.menu;
+    editor.meal = $scope.meal;
     editor.parentMarkClosed = $scope.markClosed;
     editor.parentValidate = $scope.validate;
     editor.loading = false;
     var widgetManager;
 
     // ugly hack all the way - a codemirror instance inside a ng-show|ng-hide is buggy as hell
-    $scope.$watch('validator.menuSelection[menu.getId()]', function() {
-        if($scope.validator.menuSelection[$scope.menu.getId()]) {
+    $scope.$watch('validator.mealSelection[meal.getId()]', function(newValue) {
+        if(newValue) {
             if(editor._cm) {
                 setTimeout(function() {
                     editor._cm.refresh();
@@ -39,19 +39,19 @@ app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function
         });
     }
 
-    editor.markClosed = function(pos, menuId) {
+    editor.markClosed = function(pos, mealId) {
         editor.loading = true;
-        editor.menu.setClosed(true);
-        MealService.save(editor.menu, function() {
-            editor.parentMarkClosed(pos, menuId);
+        editor.meal.setClosed(true);
+        editor.meal.$save(function() {
+            editor.parentMarkClosed(pos, mealId);
         });
     };
 
-    editor.validate = function(pos, menuId) {
+    editor.validate = function(pos, mealId) {
         editor.loading = true;
-        editor.menu.setClosed(false);
-        MealService.save(editor.menu, function() {
-            editor.parentValidate(pos, menuId);
+        editor.meal.setClosed(false);
+        editor.meal.$save(function() {
+            editor.parentValidate(pos, mealId);
         });
     };
 
@@ -80,43 +80,43 @@ app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function
     editor.cmModel = 'Loading...';
 }]);
 
-app.controller('MenuValidationCtrl', ['$scope', 'MealService', 'Hinter', function($scope, MealService, Hinter) {
+app.controller('MealValidationCtrl', ['$scope', 'MealService', 'Hinter', function($scope, MealService, Hinter) {
     var validator = this;
     validator.loading = true;
-    validator.menus = MealService.query(function() {
+    validator.meals = MealService.query(function() {
         validator.loading = false;
-        if(validator.menus && validator.menus.getMenus().length) {
-            validator.toggleMenuSelect(validator.menus.getMenus()[0].getId());
+        if(validator.meals.length) {
+            validator.toggleMealSelect(validator.meals[0].getId());
         }
     });
-    validator.menuSelection = {};
+    validator.mealSelection = {};
 
     function ensureOpen(pos) {
-        if(pos + 1 <= validator.menus.getMenus().length) {
-            validator.menuSelection[validator.menus.getMenus()[pos].getId()] = true;
+        if(pos + 1 <= validator.meals.length) {
+            validator.mealSelection[validator.meals[pos].getId()] = true;
         }
     }
 
-    function removePanel(menuId) {
-        $('#panel-menu-' + menuId).remove();
+    function removePanel(mealId) {
+        $('#panel-meal-' + mealId).remove();
     }
 
-    validator.toggleMenuSelect = function(menuId) {
-        if(!validator.menuSelection.hasOwnProperty(menuId)) {
-            validator.menuSelection[menuId] = false;
+    validator.toggleMealSelect = function(mealId) {
+        if(!validator.mealSelection.hasOwnProperty(mealId)) {
+            validator.mealSelection[mealId] = false;
         }
-        validator.menuSelection[menuId] = !validator.menuSelection[menuId];
-        return validator.menuSelection[menuId];
+        validator.mealSelection[mealId] = !validator.mealSelection[mealId];
+        return validator.mealSelection[mealId];
     };
 
-    $scope.markClosed = function(pos, menuId) {
+    $scope.markClosed = function(pos, mealId) {
         ensureOpen(pos + 1);
-        removePanel(menuId);
+        removePanel(mealId);
     };
 
-    $scope.validate = function(pos, menuId) {
+    $scope.validate = function(pos, mealId) {
         ensureOpen(pos + 1);
-        removePanel(menuId);
+        removePanel(mealId);
     };
 
     // let's init the Hinter

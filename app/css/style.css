@@ -18,32 +18,32 @@ html {
     height:   140px !important;
 }
 
-.menu-validation-heading {
+.meal-validation-heading {
     cursor: pointer;
 }
 
-.menu-validation-body {
+.meal-validation-body {
     padding: 0 !important;
 }
 
-.menu-validation-form-editor {
+.meal-validation-form-editor {
     border-bottom: 1px solid #dddddd;
 }
 
-.menu-validation-form-buttons {
+.meal-validation-form-buttons {
     margin-right: 28px;
     margin-left:  28px;
 }
 
-.menu-validation-form-button-icon {
+.meal-validation-form-button-icon {
     padding-right:  5px;
     vertical-align: text-top;
 }
 
-.menu-validation-form-button-left {
+.meal-validation-form-button-left {
     float: left;
 }
 
-.menu-validation-form-button-right {
+.meal-validation-form-button-right {
     float: right;
 }

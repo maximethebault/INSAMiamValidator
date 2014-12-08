@@ -1,31 +1,12 @@
 var app = angular.module('validator.model', ['ngResource', 'ui.codemirror']);
 
-app.factory('Menus', function() {
-    function Menus() {
-        var _menus = [];
-
-        function addMenu(menu) {
-            _menus.push(menu);
-        }
-
-        function getMenus() {
-            return _menus;
-        }
-
-        this.addMenu = addMenu;
-        this.getMenus = getMenus;
-    }
-
-    return Menus;
-});
-
-app.factory('Menu', function() {
-    function Menu() {
+app.factory('Meal', function() {
+    function Meal() {
         var _id;
         var _date;
         var _type;
         var _closed;
-        var _meal;
+        var _textlines = [];
 
         function setId(id) {
             _id = id;
@@ -59,12 +40,12 @@ app.factory('Menu', function() {
             return _closed;
         }
 
-        function setMeal(meal) {
-            _meal = meal;
+        function setTextlines(textlines) {
+            _textlines = textlines;
         }
 
-        function getMeal() {
-            return _meal;
+        function getTextlines() {
+            return _textlines;
         }
 
         function toJSON() {
@@ -73,7 +54,16 @@ app.factory('Menu', function() {
                 closed: _closed
             };
             if(!_closed) {
-                obj.meal = _meal.toJSON();
+                var exportArray = [];
+                _textlines.forEach(function(_textline) {
+                    var json = _textline.toJSON();
+                    if(json) {
+                        exportArray.push(json);
+                    }
+                });
+                // when we export a meal, the 'textlines' concept disappears
+                // instead, we're giving the list of courses directly
+                obj.courses = exportArray;
             }
             return obj;
         }
@@ -86,55 +76,16 @@ app.factory('Menu', function() {
         this.getType = getType;
         this.setClosed = setClosed;
         this.isClosed = isClosed;
-        this.setMeal = setMeal;
-        this.getMeal = getMeal;
-        this.toJSON = toJSON;
-    }
-
-    return Menu;
-});
-
-app.factory('Meal', function() {
-    function Meal() {
-        var _mealEntries = [];
-
-        function addMealEntry(mealEntry) {
-            _mealEntries.push(mealEntry);
-        }
-
-        function removeMealEntry(mealEntry) {
-            var index = _mealEntries.indexOf(mealEntry);
-            if(index > -1) {
-                _mealEntries.splice(index, 1);
-            }
-        }
-
-        function getMealEntries() {
-            return _mealEntries;
-        }
-
-        function toJSON() {
-            var exportArray = [];
-            _mealEntries.forEach(function(_mealEntry) {
-                var json = _mealEntry.toJSON();
-                if(json) {
-                    exportArray.push(json);
-                }
-            });
-            return exportArray;
-        }
-
-        this.addMealEntry = addMealEntry;
-        this.removeMealEntry = removeMealEntry;
-        this.getMealEntries = getMealEntries;
+        this.setTextlines = setTextlines;
+        this.getTextlines = getTextlines;
         this.toJSON = toJSON;
     }
 
     return Meal;
 });
 
-app.factory('MealEntry', function() {
-    function MealEntry() {
+app.factory('Textline', function() {
+    function Textline() {
         var _content;
         var _course;
 
@@ -170,7 +121,7 @@ app.factory('MealEntry', function() {
         this.toJSON = toJSON;
     }
 
-    return MealEntry;
+    return Textline;
 });
 
 app.factory('Course', function() {

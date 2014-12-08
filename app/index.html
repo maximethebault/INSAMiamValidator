@@ -11,36 +11,36 @@
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-<section class="menu-validation" ng-controller="MenuValidationCtrl as validator">
+<section class="meal-validation" ng-controller="MealValidationCtrl as validator">
     <div ng-show="validator.loading">
         <div us-spinner="{radius:30, width:8, length: 16}" spinner-start-active="true"></div>
     </div>
-    <div id="panel-menu-{{menu.getId()}}" class="panel panel-default" ng-repeat="menu in validator.menus.getMenus()"
+    <div id="panel-meal-{{meal.getId()}}" class="panel panel-default" ng-repeat="meal in validator.meals"
          ng-cloak>
-        <div class="panel-heading menu-validation-heading" ng-click="validator.toggleMenuSelect(menu.getId())">
-            <h3 class="panel-title">{{menu.getDate() | date:'dd/MM/yyyy'}} - {{menu.getType() | menuType}}</h3>
+        <div class="panel-heading meal-validation-heading" ng-click="validator.toggleMealSelect(meal.getId())">
+            <h3 class="panel-title">{{meal.getDate() | date:'dd/MM/yyyy'}} - {{meal.getType() | mealType}}</h3>
         </div>
-        <div class="panel-body menu-validation-body" ng-show="validator.menuSelection[menu.getId()]"
+        <div class="panel-body meal-validation-body" ng-show="validator.mealSelection[meal.getId()]"
              ng-controller="EditorCtrl as editor">
             <section ng-hide="editor.loading">
-                <form class="menu-validation-form">
-                    <div class="menu-validation-form-editor">
+                <form class="meal-validation-form">
+                    <div class="meal-validation-form-editor">
                         <textarea ui-codemirror="editor.cmOption" ng-model="editor.cmModel"
-                                  title="menueditor"></textarea>
+                                  title="mealeditor"></textarea>
                     </div>
-                    <ul class="menu-validation-form-buttons pager">
-                        <li class="menu-validation-form-button-left">
+                    <ul class="meal-validation-form-buttons pager">
+                        <li class="meal-validation-form-button-left">
                             <button type="button" class="btn btn-danger"
-                                    ng-click="editor.markClosed($index, menu.getId())">
-                                <span class="glyphicon glyphicon-remove menu-validation-form-button-icon"
+                                    ng-click="editor.markClosed($index, meal.getId())">
+                                <span class="glyphicon glyphicon-remove meal-validation-form-button-icon"
                                       aria-hidden="true"></span>
                                 Mark as closed
                             </button>
                         </li>
-                        <li class="menu-validation-form-button-right">
+                        <li class="meal-validation-form-button-right">
                             <button type="button" class="btn btn-primary"
-                                    ng-click="editor.validate($index, menu.getId())">
-                                <span class="glyphicon glyphicon-ok menu-validation-form-button-icon"
+                                    ng-click="editor.validate($index, meal.getId())">
+                                <span class="glyphicon glyphicon-ok meal-validation-form-button-icon"
                                       aria-hidden="true"></span>
                                 Validate
                             </button>
@@ -64,9 +64,9 @@
 <script src="../bower_components/spin.js/spin.js"></script>
 <script src="../bower_components/angular-spinner/angular-spinner.js"></script>
 
-<script type="text/javascript" src="js/menu/model.js"></script>
-<script type="text/javascript" src="js/menu/service.js"></script>
-<script type="text/javascript" src="js/menu/controller.js"></script>
+<script type="text/javascript" src="js/meal/model.js"></script>
+<script type="text/javascript" src="js/meal/service.js"></script>
+<script type="text/javascript" src="js/meal/controller.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
 
 <script src="../bower_components/codemirror/addon/hint/show-hint.js"></script>
