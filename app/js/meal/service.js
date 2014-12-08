@@ -36,8 +36,7 @@ app.factory('MealService', ['$resource', 'Meal', 'Textline', 'Course', function(
             responseType:     'json',
             headers:          {
                 'Accept':         'application/json; charset=utf-8',
-                'Accept-Charset': 'charset=utf-8',
-                'Content-Type':   'application/json; charset=utf-8'
+                'Accept-Charset': 'charset=utf-8'
             },
             transformRequest: function(meal) {
                 return JSON.stringify(meal.toJSON());
