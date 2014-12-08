@@ -246,7 +246,7 @@ app.factory('Widget', function() {
     function Widget(course) {
         var _course = course;
         var _cmWidget = null;
-        var $el = $('<div style="cursor: pointer; padding: 2px 5px 8px;">Loading...</div>');
+        var $el = $('<div style="cursor: pointer; padding: 2px 25px 8px;">Loading...</div>');
         $el.on('click', function() {
             resetWidget();
         });
