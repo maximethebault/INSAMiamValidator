@@ -3,6 +3,7 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>Validator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/lib/codemirror.css">
     <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/addon/hint/show-hint.css" />
     <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" />
@@ -14,7 +15,8 @@
     <div ng-show="validator.loading">
         <div us-spinner="{radius:30, width:8, length: 16}" spinner-start-active="true"></div>
     </div>
-    <div id="panel-menu-{{menu.getId()}}" class="panel panel-default" ng-repeat="menu in validator.menus.getMenus()">
+    <div id="panel-menu-{{menu.getId()}}" class="panel panel-default" ng-repeat="menu in validator.menus.getMenus()"
+         ng-cloak>
         <div class="panel-heading menu-validation-heading" ng-click="validator.toggleMenuSelect(menu.getId())">
             <h3 class="panel-title">{{menu.getDate() | date:'dd/MM/yyyy'}} - {{menu.getType() | menuType}}</h3>
         </div>

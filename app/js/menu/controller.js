@@ -60,6 +60,7 @@ app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function
         lineNumbers:    true,
         lineWrapping:   true,
         indentWithTabs: true,
+        viewportMargin: Infinity,
         mode:           "miamu",
         onLoad:         function(_cm) {
             editor._cm = _cm;

@@ -114,9 +114,14 @@ app.factory('Meal', function() {
         }
 
         function toJSON() {
-            return _mealEntries.map(function(_mealEntry) {
-                return _mealEntry.toJSON();
+            var exportArray = [];
+            _mealEntries.forEach(function(_mealEntry) {
+                var json = _mealEntry.toJSON();
+                if(json) {
+                    exportArray.push(json);
+                }
             });
+            return exportArray;
         }
 
         this.addMealEntry = addMealEntry;
@@ -150,7 +155,12 @@ app.factory('MealEntry', function() {
         }
 
         function toJSON() {
-            return _course.toJSON();
+            if(_course) {
+                return _course.toJSON();
+            }
+            else {
+                return null;
+            }
         }
 
         this.setContent = setContent;
@@ -211,7 +221,7 @@ app.factory('Course', function() {
     Course.filterCourse = function(unfilteredCourse) {
         var courseType = null;
         if(unfilteredCourse.hasOwnProperty('starter')) {
-            courseType = 'stater';
+            courseType = 'starter';
         }
         else if(unfilteredCourse.hasOwnProperty('main')) {
             courseType = 'main';
@@ -223,8 +233,8 @@ app.factory('Course', function() {
             return null;
         }
         var course = new Course();
-        course.setId(unfilteredCourse.id);
-        course.setName(unfilteredCourse.name);
+        course.setId(unfilteredCourse[courseType].id);
+        course.setName(unfilteredCourse[courseType].name);
         course.setType(courseType);
         return course;
     };
@@ -236,7 +246,7 @@ app.factory('Widget', function() {
     function Widget(course) {
         var _course = course;
         var _cmWidget = null;
-        var $el = $('<div style="cursor: pointer;">Loading...</div>');
+        var $el = $('<div style="cursor: pointer; padding: 2px 5px 8px;">Loading...</div>');
         $el.on('click', function() {
             resetWidget();
         });

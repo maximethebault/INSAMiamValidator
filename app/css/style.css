@@ -2,13 +2,20 @@ html {
     margin: 10px;
 }
 
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+    display: none !important;
+}
+
+.CodeMirror {
+    height: auto;
+}
+
 .spinner {
-    position:    relative !important;
-    top:         70px !important;
-    left:        50% !important;
-    margin-left: -50px !important;
-    width:       100px !important;
-    height:      140px !important;
+    position: relative !important;
+    top:      70px !important;
+    left:     50% !important;
+    width:    100px !important;
+    height:   140px !important;
 }
 
 .menu-validation-heading {

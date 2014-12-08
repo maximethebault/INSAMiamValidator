@@ -103,6 +103,7 @@ app.factory('WidgetManager', ['$timeout', 'Menu', 'Course', 'Widget', function($
                                 }));
                                 mealEntry.setCourse(course);
                             }
+                            //console.log(mealEntry.getCourse().toJSON());
                             addWidget(_cm, index, mealEntry.getCourse());
                         }
                     });
