@@ -1,6 +1,6 @@
-var app = angular.module('validator.controller', ['ngResource', 'ui.codemirror', 'validator.service', 'validator.autocomplete']);
+var app = angular.module('validator.controller', ['ngResource', 'ui.codemirror', 'validator.service', 'validator.persistence', 'validator.autocomplete']);
 
-app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function($scope, MealService, WidgetManager) {
+app.controller('EditorCtrl', ['$scope', '$timeout', 'MealResource', 'WidgetManager', function($scope, $timeout, MealResource, WidgetManager) {
     var editor = this;
     editor.meal = $scope.meal;
     editor.parentMarkClosed = $scope.markClosed;
@@ -9,26 +9,42 @@ app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function
     var widgetManager;
 
     // ugly hack all the way - a codemirror instance inside a ng-show|ng-hide is buggy as hell
-    $scope.$watch('validator.mealSelection[meal.getId()]', function(newValue) {
+    $scope.$watch('validator.openedMeal[meal.getId()]', function(newValue) {
         if(newValue) {
             if(editor._cm) {
-                setTimeout(function() {
+                $timeout(function() {
                     editor._cm.refresh();
-                }, 0);
+                });
             }
         }
     });
 
+    /**
+     * When the textarea's content are changed, update the application state
+     *
+     * @param _cm CodeMirror the CodeMirror instance
+     */
     function contentChanged(_cm) {
         widgetManager.updateWidgets(_cm, editor.cmModel);
     }
 
+    /**
+     * Whenever the user is adding text, show autocompletion dialog
+     *
+     * @param _cm CodeMirror the CodeMirror instance
+     * @param changes Object the changes the user has made
+     */
     function inputRead(_cm, changes) {
         if(changes.origin == '+input' && changes.text.length) {
             showHint(_cm);
         }
     }
 
+    /**
+     * Configure the autocompletion dialog before showing it
+     *
+     * @param _cm CodeMirror the CodeMirror instance
+     */
     function showHint(_cm) {
         CodeMirror.showHint(_cm, CodeMirror.hint.miamu, {
             async:          true,
@@ -39,6 +55,12 @@ app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function
         });
     }
 
+    /**
+     * Set restaurant as closed for this meal
+     *
+     * @param pos int the meal position amongst the other meals
+     * @param mealId int
+     */
     editor.markClosed = function(pos, mealId) {
         editor.loading = true;
         editor.meal.setClosed(true);
@@ -47,6 +69,12 @@ app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function
         });
     };
 
+    /**
+     * Validate the meal
+     *
+     * @param pos int the meal position amongst the other meals
+     * @param mealId int
+     */
     editor.validate = function(pos, mealId) {
         editor.loading = true;
         editor.meal.setClosed(false);
@@ -80,43 +108,57 @@ app.controller('EditorCtrl', ['$scope', 'MealService', 'WidgetManager', function
     editor.cmModel = 'Loading...';
 }]);
 
-app.controller('MealValidationCtrl', ['$scope', 'MealService', 'Hinter', function($scope, MealService, Hinter) {
+app.controller('MealValidationCtrl', ['$scope', 'MealResource', 'Hinter', function($scope, MealResource, Hinter) {
     var validator = this;
     validator.loading = true;
-    validator.meals = MealService.query(function() {
+    validator.meals = MealResource.query(function() {
         validator.loading = false;
         if(validator.meals.length) {
-            validator.toggleMealSelect(validator.meals[0].getId());
+            validator.toggleMealOpen(validator.meals[0].getId());
         }
     });
-    validator.mealSelection = {};
+    validator.openedMeal = {};
 
-    function ensureOpen(pos) {
+    /**
+     * Makes sure that a meal panel is opened
+     *
+     * @param pos int the position of the panel to check
+     */
+    function ensureMealOpen(pos) {
         if(pos + 1 <= validator.meals.length) {
-            validator.mealSelection[validator.meals[pos].getId()] = true;
+            validator.openedMeal[validator.meals[pos].getId()] = true;
         }
     }
 
-    function removePanel(mealId) {
+    /**
+     * Removes a meal panel
+     *
+     * @param mealId int id of the meal to remove
+     */
+    function removeMeal(mealId) {
         $('#panel-meal-' + mealId).remove();
     }
 
-    validator.toggleMealSelect = function(mealId) {
-        if(!validator.mealSelection.hasOwnProperty(mealId)) {
-            validator.mealSelection[mealId] = false;
+    /**
+     * Toggle meal's panel opening
+     *
+     * @param mealId int
+     */
+    validator.toggleMealOpen = function(mealId) {
+        if(!validator.openedMeal.hasOwnProperty(mealId)) {
+            validator.openedMeal[mealId] = false;
         }
-        validator.mealSelection[mealId] = !validator.mealSelection[mealId];
-        return validator.mealSelection[mealId];
+        validator.openedMeal[mealId] = !validator.openedMeal[mealId];
     };
 
     $scope.markClosed = function(pos, mealId) {
-        ensureOpen(pos + 1);
-        removePanel(mealId);
+        ensureMealOpen(pos + 1);
+        removeMeal(mealId);
     };
 
     $scope.validate = function(pos, mealId) {
-        ensureOpen(pos + 1);
-        removePanel(mealId);
+        ensureMealOpen(pos + 1);
+        removeMeal(mealId);
     };
 
     // let's init the Hinter

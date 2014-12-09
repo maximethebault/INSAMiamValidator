@@ -17,10 +17,10 @@
     </div>
     <div id="panel-meal-{{meal.getId()}}" class="panel panel-default" ng-repeat="meal in validator.meals"
          ng-cloak>
-        <div class="panel-heading meal-validation-heading" ng-click="validator.toggleMealSelect(meal.getId())">
+        <div class="panel-heading meal-validation-heading" ng-click="validator.toggleMealOpen(meal.getId())">
             <h3 class="panel-title">{{meal.getDate() | date:'dd/MM/yyyy'}} - {{meal.getType() | mealType}}</h3>
         </div>
-        <div class="panel-body meal-validation-body" ng-show="validator.mealSelection[meal.getId()]"
+        <div class="panel-body meal-validation-body" ng-show="validator.openedMeal[meal.getId()]"
              ng-controller="EditorCtrl as editor">
             <section ng-hide="editor.loading">
                 <form class="meal-validation-form">
@@ -65,6 +65,7 @@
 <script src="../bower_components/angular-spinner/angular-spinner.js"></script>
 
 <script type="text/javascript" src="js/meal/model.js"></script>
+<script type="text/javascript" src="js/meal/resource.js"></script>
 <script type="text/javascript" src="js/meal/service.js"></script>
 <script type="text/javascript" src="js/meal/controller.js"></script>
 <script type="text/javascript" src="js/app.js"></script>

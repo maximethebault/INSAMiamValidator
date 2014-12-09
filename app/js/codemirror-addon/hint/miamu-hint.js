@@ -1,6 +1,6 @@
-var app = angular.module('validator.autocomplete', ['ngResource', 'ui.codemirror', 'validator.service']);
+var app = angular.module('validator.autocomplete', ['ngResource', 'ui.codemirror', 'validator.persistence']);
 
-app.service('Hinter', ['MealService', 'CourseService', function(MealService, CourseService) {
+app.service('Hinter', ['CourseResource', function(CourseResource) {
     return function() {
         CodeMirror.registerHelper("hint", "miamu", function(cm, cb, options) {
             var cur = cm.getCursor(), token = cm.getTokenAt(cur);
@@ -28,7 +28,7 @@ app.service('Hinter', ['MealService', 'CourseService', function(MealService, Cou
             else {
                 return;
             }
-            CourseService.query({
+            CourseResource.query({
                 courseType: courseType,
                 similar:    word
             }, function(courses) {

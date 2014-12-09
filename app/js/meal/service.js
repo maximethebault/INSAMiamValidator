@@ -1,78 +1,109 @@
 var app = angular.module('validator.service', ['ngResource', 'ui.codemirror', 'validator.model']);
 
-app.factory('MealService', ['$resource', 'Meal', 'Textline', 'Course', function($resource, Meal, Textline, Course) {
-    return $resource('/insamiam/api/meal', {}, {
-        query: {
-            method:            'GET',
-            responseType:      'json',
-            headers:           {
-                'Accept':         'application/json; charset=utf-8',
-                'Accept-Charset': 'charset=utf-8'
-            },
-            isArray:           true,
-            params:            {validated: 0},
-            transformResponse: function(mealsData) {
-                var meals = [];
-                mealsData.forEach(function(mealData) {
-                    var meal = new Meal();
-                    meal.setId(mealData.id);
-                    meal.setDate(mealData.date);
-                    meal.setType(mealData.type);
-                    meal.setClosed(mealData.closed);
-                    var textlines = meal.getTextlines();
-                    mealData.textlines.forEach(function(textlineData) {
-                        var textline = new Textline();
-                        textline.setContent(textlineData.content);
-                        textline.setCourse(Course.filterCourse(textlineData));
-                        textlines.push(textline);
-                    });
-                    meals.push(meal);
-                });
-                return meals;
-            }
-        },
-        save:  {
-            method:           'POST',
-            responseType:     'json',
-            headers:          {
-                'Accept':         'application/json; charset=utf-8',
-                'Accept-Charset': 'charset=utf-8'
-            },
-            transformRequest: function(meal) {
-                return JSON.stringify(meal.toJSON());
+app.factory('Widget', ['Course', function(Course) {
+    function Widget(textline) {
+        var _textline = textline;
+        var _cmWidget = null;
+        var $el = $('<div style="cursor: pointer; padding: 2px 25px 8px;">Loading...</div>');
+        $el.on('click', function() {
+            resetCourse();
+        });
+
+        function init() {
+            // if the textline hasn't got a course object, let's add it!
+            if(!_textline.getCourse()) {
+                var course = new Course();
+                _textline.setCourse(course);
             }
         }
-    });
-}]);
 
-app.factory('CourseService', ['$resource', 'Course', function($resource, Course) {
-    return $resource(
-        '/insamiam/api/:courseType',
-        {
-            courseType: '@courseType',
-            similar:    '@similar'
-        },
-        {
-            query: {
-                method:            'GET',
-                headers:           {
-                    'Accept':         'application/json; charset=utf-8',
-                    'Accept-Charset': 'charset=utf-8'
-                },
-                responseType:      'json',
-                isArray:           true,
-                transformResponse: function(coursesData) {
-                    var courses = [];
-                    coursesData.forEach(function(courseData) {
-                        var course = new Course();
-                        course.setId(courseData.id);
-                        course.setName(courseData.name);
-                        courses.push(course);
-                    });
-                    return courses;
-                }
+        function resetCourse() {
+            _textline.getCourse().setId(null);
+            update();
+        }
+
+        function setCmWidget(cmWidget) {
+            _cmWidget = cmWidget;
+            update();
+        }
+
+        function getTextline() {
+            return _textline;
+        }
+
+        function getLine() {
+            return _cmWidget.line.lineNo();
+        }
+
+        function setCourse(course) {
+            _textline.getCourse().setId(course.getId());
+            _textline.getCourse().setName(course.getName());
+            _textline.getCourse().setType(course.getType());
+            update();
+        }
+
+        function getHtml() {
+            return $el[0];
+        }
+
+        function update() {
+            if(!_textline.getCourse().getId()) {
+                _textline.getCourse().setName(computeText());
+                _textline.getCourse().setType(computeCourseType());
             }
-        });
+            else {
+                //TODO: handle courses in the wrong section
+            }
+            updateHtml();
+        }
+
+        function updateHtml() {
+            if(_textline.getCourse().getId()) {
+                $el.html('<div>Existing ' + _textline.getCourse().getType() + ': ' + _textline.getCourse().getName() + '</div>');
+            }
+            else {
+                $el.html('<div>New ' + _textline.getCourse().getType() + ': ' + _textline.getCourse().getName() + '</div>');
+            }
+        }
+
+        function computeText() {
+            return _cmWidget.line.text;
+        }
+
+        function computeCourseType() {
+            return getCourseTypeAtCursor({
+                line: getLine(),
+                ch:   0
+            });
+        }
+
+        function getCourseTypeAtCursor(cursor) {
+            var _cm = _cmWidget.cm;
+            var token = _cm.getTokenAt(cursor);
+            var inner = CodeMirror.innerMode(_cm.getMode(), token.state);
+            if(inner.state.starter) {
+                return 'starter';
+            }
+            else if(inner.state.main) {
+                return 'main';
+            }
+            else if(inner.state.dessert) {
+                return 'dessert';
+            }
+        }
+
+        // expose the Widget's API
+        this.setCmWidget = setCmWidget;
+        this.getTextline = getTextline;
+        this.getLine = getLine;
+        this.setCourse = setCourse;
+        this.getHtml = getHtml;
+        this.update = update;
+
+        init();
+    }
+
+    return Widget;
 }]);
 
 app.factory('WidgetManager', ['$timeout', 'Meal', 'Textline', 'Course', 'Widget', function($timeout, Meal, Textline, Course, Widget) {
@@ -92,18 +123,9 @@ app.factory('WidgetManager', ['$timeout', 'Meal', 'Textline', 'Course', 'Widget'
             $timeout(function() {
                 _cm.operation(function() {
                     textlines = editor.meal.getTextlines();
-                    editor.meal.getTextlines().forEach(function(textline, index) {
+                    textlines.forEach(function(textline, lineNo) {
                         if(textline.getContent()) {
-                            if(!textline.getCourse()) {
-                                var course = new Course();
-                                course.setName(textline.getContent());
-                                course.setType(getCourseTypeAt(_cm, {
-                                    line: index,
-                                    ch:   0
-                                }));
-                                textline.setCourse(course);
-                            }
-                            addWidget(_cm, index, textline.getCourse());
+                            addWidget(_cm, lineNo, textline);
                         }
                     });
                 });
@@ -113,9 +135,9 @@ app.factory('WidgetManager', ['$timeout', 'Meal', 'Textline', 'Course', 'Widget'
             });
         }
 
-        function addWidget(_cm, line, course) {
-            var widget = new Widget(course);
-            widget.setCmWidget(_cm.addLineWidget(line, widget.getHtml()));
+        function addWidget(_cm, lineNo, textline) {
+            var widget = new Widget(textline);
+            widget.setCmWidget(_cm.addLineWidget(lineNo, widget.getHtml()));
             _widgets.push(widget);
         }
 
@@ -132,20 +154,15 @@ app.factory('WidgetManager', ['$timeout', 'Meal', 'Textline', 'Course', 'Widget'
             return widgetFound;
         }
 
-        function getCourseTypeAt(_cm, cursor) {
-            var token = _cm.getTokenAt(cursor);
-            var inner = CodeMirror.innerMode(_cm.getMode(), token.state);
-            if(inner.state.starter) {
-                return 'starter';
-            }
-            else if(inner.state.main) {
-                return 'main';
-            }
-            else if(inner.state.dessert) {
-                return 'dessert';
-            }
-        }
-
+        /**
+         * Scans the content for changes :
+         * -> adds new widgets if brand new lines are detected
+         * -> updates existing widgets
+         * -> removes widgets whose associated lines were deleted
+         *
+         * @param _cm CodeMirror the CodeMirror instance
+         * @param editorContent String the raw editor content
+         */
         function updateWidgets(_cm, editorContent) {
             var orphelinWidgets = [];
             // we copy the _widgets array into a new one
@@ -154,29 +171,19 @@ app.factory('WidgetManager', ['$timeout', 'Meal', 'Textline', 'Course', 'Widget'
             lines.forEach(function(lineContent, lineIndex) {
                 var widget = getWidgetAtLine(lineIndex);
                 if(lineContent.length && !widget) {
-                    var course = new Course();
-                    course.setName(lineContent);
-                    course.setType(getCourseTypeAt(_cm, _cm.getCursor()));
-
                     var textline = new Textline();
-                    textline.setCourse(course);
-
                     textlines.push(textline);
-                    addWidget(_cm, lineIndex, course);
+
+                    addWidget(_cm, lineIndex, textline);
                 }
                 else if(widget) {
-                    widget.updateText(lineContent);
+                    widget.update();
                     delete orphelinWidgets[orphelinWidgets.indexOf(widget)];
                 }
             });
             orphelinWidgets.forEach(function(widget) {
                 delete _widgets[_widgets.indexOf(widget)];
-                textlines.some(function(texline, index) {
-                    if(texline.getCourse() == widget.getCourse()) {
-                        textlines.splice(index, 1);
-                        return true;
-                    }
-                });
+                delete textlines.splice(textlines.indexOf(widget.getTextline()), 1);
             });
         }
 
